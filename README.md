@@ -27,6 +27,14 @@ You should use [AltStore](https://altstore.io/) or [SideStore](https://sidestore
 
 You can also [click here](https://stikstore.app/altdirect/?url=https://github.com/minh-ton/reynard-browser/releases/download/0.0.1-a1/source.json&exclude=livecontainer,stikstore,trollapps,feather) to add the AltSource for Reynard to AltStore or SideStore.
 
+### Cydia Impactor (iOS 12.0 - 12.3)
+
+For an iPad on iOS 12.1.1, build the dedicated unsigned IPA described in
+[`browser/IOS12_SIDELOAD.md`](browser/IOS12_SIDELOAD.md). It uses a 12.0
+deployment target and is packaged specifically for recursive re-signing by
+Impactor; do not remove either embedded app extension. If your Mac cannot run
+Xcode 15.4, the same guide includes a manual GitHub Actions build path.
+
 > [!IMPORTANT]
 > - **LiveContainer is not supported** due to its own limitations.
 > - Sideloading methods that use a distribution certificate for signing are **not supported**.⁠

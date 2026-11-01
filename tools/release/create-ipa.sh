@@ -43,7 +43,7 @@ PTRACE_JIT_OUT="Payload/Reynard.app/ptrace_jit"
 "$CLANG_PATH" \
 	-arch arm64 \
 	-isysroot "$SDK_PATH" \
-	-miphoneos-version-min=12.4 \
+	-miphoneos-version-min=12.0 \
 	-Os \
 	"$PTRACE_JIT_SRC" \
 	-o "$PTRACE_JIT_OUT"

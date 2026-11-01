@@ -15,6 +15,24 @@ Legend: **[SHIM]** = real fallback provided · **[GATE]** = feature disabled on 
 
 ---
 
+## 0. iOS 12.0–12.3 deployment and framework loading — [SHIM]
+The iOS 12.1.1 sideload build must use a **12.0** deployment target everywhere,
+not 12.4: the app target, the Gecko build, libimobiledevice and the packaged
+helper binary.  Those settings live in `Configuration/Reynard.xcconfig`,
+`Reynard.xcodeproj`, `tools/development/build-{gecko,idevice}.sh`, and
+`tools/release/create-ipa.sh`.
+
+`PhotosUI` and `UniformTypeIdentifiers` first ship in iOS 14; `QuickLookThumbnailing`
+first ships in iOS 13.  Their individual uses are availability-gated, but that is
+not sufficient if the Mach-O binary has a normal (strong) framework dependency:
+dyld would exit before the first availability check.  They are therefore
+weak-linked through `Reynard.xcconfig`.
+
+`CryptoKit` was also removed from the iOS 12 app target. `Data.sha256Hex` now
+uses the iOS-12-compatible CommonCrypto implementation on every OS version.
+
+---
+
 ## 0. Helper extension point (Gecko child-process host) — [SHIM, needs device verification]
 `Helper/Info.plist` — `NSExtensionPointIdentifier` changed `com.apple.ar.viewer` (iOS 13.4+) →
 `com.apple.app.non-ui-extension.multiple-instances`. The Helper is GeckoView's content/child-process
@@ -43,6 +61,9 @@ Fix:
 ## 1. Semantic colors / table style / corner curve — [SHIM] (done, no fallback needed)
 - `Reynard/Client/Extensions/UICompat.swift` — `UIColor.app*` semantic colors, `UITableView.Style.appGrouped`, `CALayer.applyContinuousCornerCurve()`. Swept across ~96 files. Real light-mode fallbacks on iOS 12.
 - Haptics: `Reynard/Client/Shared/Haptics.swift` — `.rigid` → `.heavy` (iOS 12 fallback). [SHIM]
+- `UIColor.appSystemYellow` — iOS 13's `systemYellow`, with a fixed yellow fallback
+  for iOS 12. Used by the donation recommendation card, which is constructed on
+  initial homepage display. [SHIM]
 
 ## 2. Context menus (UIContextMenuInteraction / UIMenu / UIAction) — [GATE]
 _iOS 12 has no context-menu API. All gated off; long-press does nothing on iOS 12._
@@ -93,6 +114,10 @@ iOS-12 fallback = the light-appearance branch.
 - `JIT/Interface/JITFailure.swift` — `monospacedSystemFont` → Menlo on iOS 12; `isModalInPresentation` gated
 - `Addons/AddonCoordinator.swift`, `ContentView/.../FilePickerMediaPicker.swift`, `JITFailure.swift` — `isModalInPresentation` gated (no interactive sheet-dismissal on iOS 12)
 - `Addons/AddonPermissionSupport.swift` — `ListFormatter` → comma-join on iOS 12 [SHIM]
+- `ContentView/WebContent/FilePicker` — `UIAdaptivePresentationControllerDelegate`
+  and assignments to `presentationController.delegate` are iOS 13+; both are
+  now guarded. iOS 12 continues to receive cancellation through the document
+  and image picker delegates. [SHIM]
 - `main.swift` — `configureUnsandboxedAppDataDirectories` (iOS 13.x-only) call-site narrowed to skip iOS 12 [GATE — revisit if unsandboxed iOS-12 builds need MOZ_APP_DATA setup]
 
 ## 4. Scene lifecycle (UIWindowScene / UISceneConfiguration) — [GATE] + [SHIM]

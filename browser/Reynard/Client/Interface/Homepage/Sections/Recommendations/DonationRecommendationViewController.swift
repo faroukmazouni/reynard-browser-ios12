@@ -49,7 +49,7 @@ final class DonationRecommendationViewController: UIViewController, HomepageReco
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.applyContinuousCornerCurve()
         view.layer.cornerRadius = UX.cornerRadius
-        view.layer.borderColor = UIColor.systemYellow.cgColor
+        view.layer.borderColor = UIColor.appSystemYellow.cgColor
         view.layer.borderWidth = UX.borderWidth
         view.clipsToBounds = true
         view.backgroundColor = .appSystemGray6
@@ -59,7 +59,7 @@ final class DonationRecommendationViewController: UIViewController, HomepageReco
     private let tintView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor.systemYellow.withAlphaComponent(0.08)
+        view.backgroundColor = UIColor.appSystemYellow.withAlphaComponent(0.08)
         view.isUserInteractionEnabled = false
         return view
     }()

@@ -6,7 +6,7 @@
 //
 
 import MobileCoreServices
-@preconcurrency import PhotosUI
+import PhotosUI
 import UniformTypeIdentifiers
 
 extension FilePicker {

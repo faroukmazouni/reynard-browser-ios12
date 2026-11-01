@@ -1,0 +1,60 @@
+name: Build iOS 12 Impactor IPA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # macOS 14 is the hosted image that supports Xcode 15.4. Xcode 15.4 can
+    # produce binaries with an iOS 12 deployment target.
+    runs-on: macos-14
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out the project and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Select Xcode 15.4
+        run: |
+          test -d /Applications/Xcode_15.4.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer
+          sudo xcodebuild -license accept
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+
+      - name: Install build tools
+        run: |
+          brew list ldid >/dev/null 2>&1 || brew install ldid
+          rustup target add aarch64-apple-ios
+          python3 --version
+          rustc --version
+          ldid -h >/dev/null
+
+      - name: Prepare Gecko sources
+        run: |
+          ./tools/development/update-gecko.sh
+          ./tools/development/apply-patches.sh
+
+      - name: Build native dependencies and Gecko
+        run: |
+          ./tools/development/build-idevice.sh
+          ./tools/development/build-gecko.sh
+
+      - name: Build unsigned iOS 12 archive and IPA
+        run: |
+          ./tools/release/build-ios12-impactor.sh
+          ./tools/release/create-ios12-impactor-ipa.sh
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Reynard-iOS12-Impactor
+          path: dist/ios12-impactor/Reynard-iOS12-Impactor.ipa
+          if-no-files-found: error
+          retention-days: 14

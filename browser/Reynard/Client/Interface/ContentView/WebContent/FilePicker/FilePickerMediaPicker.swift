@@ -6,7 +6,7 @@
 //
 
 import MobileCoreServices
-@preconcurrency import PhotosUI
+import PhotosUI
 import UIKit
 
 extension FilePicker {
@@ -97,7 +97,9 @@ extension FilePicker {
         picker.delegate = self
         picker.sourceType = sourceType
         picker.mediaTypes = mediaTypes
-        picker.presentationController?.delegate = self
+        if #available(iOS 13.0, *) {
+            picker.presentationController?.delegate = self
+        }
         configureCameraIfNeeded(picker, mediaTypes: mediaTypes, sourceType: sourceType)
         
         presenter.present(picker, animated: true)

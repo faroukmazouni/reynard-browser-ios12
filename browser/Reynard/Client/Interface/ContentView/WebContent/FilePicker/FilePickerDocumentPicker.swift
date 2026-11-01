@@ -18,7 +18,9 @@ extension FilePicker {
         
         let picker = documentPicker()
         picker.delegate = self
-        picker.presentationController?.delegate = self
+        if #available(iOS 13.0, *) {
+            picker.presentationController?.delegate = self
+        }
         picker.allowsMultipleSelection = mode == .multiple
         presenter.present(picker, animated: true)
         presentedController = picker

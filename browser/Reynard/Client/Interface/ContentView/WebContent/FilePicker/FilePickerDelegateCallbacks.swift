@@ -5,7 +5,7 @@
 //  Created by Minh Ton on 17/6/26.
 //
 
-@preconcurrency import PhotosUI
+import PhotosUI
 import UIKit
 
 extension FilePicker: UIDocumentPickerDelegate {
@@ -56,6 +56,7 @@ extension FilePicker: UIImagePickerControllerDelegate, UINavigationControllerDel
     }
 }
 
+@available(iOS 13.0, *)
 extension FilePicker: UIAdaptivePresentationControllerDelegate {
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         presentedController = nil

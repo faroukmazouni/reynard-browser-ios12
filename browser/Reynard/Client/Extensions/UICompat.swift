@@ -82,6 +82,10 @@ extension UIColor {
         if #available(iOS 13.0, *) { return .systemGray6 }
         return UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1)
     }
+    static var appSystemYellow: UIColor {
+        if #available(iOS 13.0, *) { return .systemYellow }
+        return UIColor(red: 1.0, green: 0.80, blue: 0.0, alpha: 1)
+    }
 }
 
 extension UITableView.Style {
