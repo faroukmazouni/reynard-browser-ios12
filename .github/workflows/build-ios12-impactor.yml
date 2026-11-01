@@ -32,7 +32,7 @@ jobs:
   engine:
     name: Build Gecko with the newer SDK
     needs: preflight
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 360
     env:
       MOZ_AUTOMATION: "1"
@@ -43,12 +43,17 @@ jobs:
         with:
           submodules: false
           fetch-depth: 1
-      - name: Select Xcode 16.4 for Gecko's SDK requirement
+      - name: Select Xcode 26.6 and check both Gecko SDK requirements
         run: |
-          test -d /Applications/Xcode_16.4.app/Contents/Developer
-          sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer
+          test -d /Applications/Xcode_26.6.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_26.6.app/Contents/Developer
           xcodebuild -version
+          xcrun --sdk macosx --show-sdk-version
           xcrun --sdk iphoneos --show-sdk-version
+          xcrun clang --version
+          host_sdk="$(xcrun --sdk macosx --show-sdk-version)"
+          ios_sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
+          python3 -c 'import sys; parse = lambda value: tuple(map(int, value.split("."))); assert parse(sys.argv[1]) >= (26, 4), "Gecko needs macOS SDK >= 26.4"; assert parse(sys.argv[2]) >= (18, 4), "Gecko needs iOS SDK >= 18.4"' "$host_sdk" "$ios_sdk"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -59,13 +64,12 @@ jobs:
       - name: Make space on the temporary build machine
         run: |
           test "$GITHUB_ACTIONS" = true
-          # Retain Xcode 16.4. These named unused installations belong to the
+          # Retain Xcode 26.6. These named unused installations belong to the
           # disposable CI machine; these commands never run on the user's Mac.
           for unused_xcode in \
+            /Applications/Xcode_26.5.app /Applications/Xcode_26.4.1.app \
             /Applications/Xcode_26.3.app /Applications/Xcode_26.2.app \
-            /Applications/Xcode_26.1.1.app /Applications/Xcode_26.0.1.app \
-            /Applications/Xcode_16.3.app /Applications/Xcode_16.2.app \
-            /Applications/Xcode_16.1.app /Applications/Xcode_16.app; do
+            /Applications/Xcode_26.1.1.app /Applications/Xcode_26.0.1.app; do
             if [ -d "$unused_xcode" ] && [ ! -L "$unused_xcode" ]; then
               sudo rm -rf "$unused_xcode"
             fi

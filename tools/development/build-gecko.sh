@@ -16,6 +16,11 @@ if [ ! -x "$FIREFOX_DIR/mach" ]; then
 	exit 1
 fi
 
+# Pin both SDKs to the selected Xcode. Gecko also compiles tools that run on
+# macOS, so a sufficiently new iOS SDK alone does not satisfy its requirements.
+export MACOS_SDK_DIR="${MACOS_SDK_DIR:-$(xcrun --sdk macosx --show-sdk-path)}"
+export IPHONEOS_SDK_DIR="${IPHONEOS_SDK_DIR:-$(xcrun --sdk iphoneos --show-sdk-path)}"
+
 rm -f "$FIREFOX_DIR/.mozconfig"
 
 # Apple clang cannot target wasm, which the RLBox sandboxed libraries need.

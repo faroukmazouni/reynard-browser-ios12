@@ -1,0 +1,24 @@
+diff --git a/python/mozbuild/mozbuild/toolchains.py b/python/mozbuild/mozbuild/toolchains.py
+--- a/python/mozbuild/mozbuild/toolchains.py
++++ b/python/mozbuild/mozbuild/toolchains.py
+@@ -61,13 +61,17 @@ def toolchain_task_definitions():
+             check=False,
+             cwd=root_dir,
+             env=env,
+-            stdout=subprocess.DEVNULL,
+-            stderr=subprocess.DEVNULL,
++            stdout=subprocess.PIPE,
++            stderr=subprocess.STDOUT,
++            text=True,
+         )
+ 
+         if result.returncode != 0:
++            # Preserve the real bootstrap error in configure/CI diagnostics.
++            # Otherwise an SDK/toolchain fallback hides the original failure.
++            details = (result.stdout or "").strip()[-12000:]
+             raise RuntimeError(
+-                f"mach taskgraph failed in toolchain.py (exit {result.returncode})"
++                f"mach taskgraph failed in toolchain.py (exit {result.returncode})\n{details}"
+             )
+ 
+         with open(output_file) as f:
