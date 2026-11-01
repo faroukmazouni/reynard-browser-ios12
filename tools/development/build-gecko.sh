@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+BUILD_ACTION="${1:-build}"
+case "$BUILD_ACTION" in
+	build|configure) ;;
+	*) echo "Usage: $0 [build|configure]" >&2; exit 2 ;;
+esac
+
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 ROOT_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)"
 FIREFOX_DIR="$ROOT_DIR/engine/firefox"
@@ -63,5 +69,10 @@ if ! rustup target list | grep -q "^$TARGET (installed)"; then
 	rustup target add "$TARGET"
 fi
 
+# Gecko probes Rustup proxies using a synthetic argv[0]. Homebrew's wrapper
+# scripts discard that name, so supply the actual installed toolchain binaries.
+export RUSTC="${RUSTC:-$(rustup which rustc)}"
+export CARGO="${CARGO:-$(rustup which cargo)}"
+
 cd "$FIREFOX_DIR"
-./mach build
+./mach "$BUILD_ACTION"

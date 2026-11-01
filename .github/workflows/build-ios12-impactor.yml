@@ -72,6 +72,11 @@ jobs:
             /Applications/Xcode_26.5.app /Applications/Xcode_26.4.1.app \
             /Applications/Xcode_26.3.app /Applications/Xcode_26.2.app \
             /Applications/Xcode_26.1.1.app /Applications/Xcode_26.0.1.app; do
+            # Stop once there is enough room instead of removing every Xcode.
+            available_kb="$(df -k . | awk 'END { print $4 }')"
+            if [ "$available_kb" -ge 41943040 ]; then
+              break
+            fi
             if [ -d "$unused_xcode" ] && [ ! -L "$unused_xcode" ]; then
               sudo rm -rf "$unused_xcode"
             fi
@@ -88,7 +93,11 @@ jobs:
           set -o pipefail
           ./tools/development/update-gecko.sh
           ./tools/development/apply-patches.sh < /dev/null 2>&1 | tee dist/ci-logs/patches.log
-      - name: Build Gecko targeting iOS 12.0
+      - name: Configure Gecko and verify the toolchains
+        run: |
+          set -o pipefail
+          ./tools/development/build-gecko.sh configure 2>&1 | tee dist/ci-logs/configure.log
+      - name: Compile Gecko targeting iOS 12.0
         run: |
           set -o pipefail
           ./tools/development/build-gecko.sh 2>&1 | tee dist/ci-logs/gecko.log
