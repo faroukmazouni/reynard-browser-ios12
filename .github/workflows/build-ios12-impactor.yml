@@ -34,8 +34,10 @@ jobs:
     needs: preflight
     runs-on: macos-26
     timeout-minutes: 360
+    # MOZ_AUTOMATION specifically means Mozilla Taskcluster. Defining it in
+    # GitHub Actions makes local toolchain bootstrap require a nonexistent
+    # Taskcluster TASK_ID, so it must remain absent (even "0" is incorrect).
     env:
-      MOZ_AUTOMATION: "1"
       GECKO_BUILD_JOBS: "2"
       CARGO_BUILD_JOBS: "2"
     steps:
