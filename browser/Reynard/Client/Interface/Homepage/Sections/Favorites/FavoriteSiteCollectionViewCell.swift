@@ -180,7 +180,7 @@ final class FavoriteSiteCollectionViewCell: UICollectionViewCell {
     
     private func updateShadowColor() {
         let iconSize = currentIconSize()
-        shadowView.layer.shadowColor = traitCollection.userInterfaceStyle == .dark
+        shadowView.layer.shadowColor = traitCollection.appUsesDarkAppearance
         ? UIColor.white.cgColor
         : UIColor.black.cgColor
         shadowView.layer.shadowPath = UIBezierPath(

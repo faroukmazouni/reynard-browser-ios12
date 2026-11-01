@@ -38,9 +38,11 @@ final class LibraryActionButton: UIButton {
     override func layoutSubviews() {
         super.layoutSubviews()
         
+        #if compiler(>=6.2)
         guard #unavailable(iOS 26.0) else {
             return
         }
+        #endif
         
         layer.cornerRadius = bounds.height / UX.cornerRadiusDivisor
     }
@@ -48,16 +50,20 @@ final class LibraryActionButton: UIButton {
     // MARK: - Updates
     
     func setIcon(named iconName: String) {
+        // Runtime availability cannot hide a symbol absent from the build SDK.
+        // Swift 6.2 ships with the iOS 26 SDK; Xcode 15.4 uses the fallback.
+        #if compiler(>=6.2)
         if #available(iOS 26.0, *) {
             var configuration = UIButton.Configuration.glass()
             configuration.image = UIImage(named: iconName)
             configuration.baseForegroundColor = .appLabel
             configuration.contentInsets = .zero
             self.configuration = configuration
-        } else {
-            setImage(UIImage(named: iconName), for: .normal)
-            backgroundColor = .appQuaternarySystemFill
+            return
         }
+        #endif
+        setImage(UIImage(named: iconName), for: .normal)
+        backgroundColor = .appQuaternarySystemFill
     }
     
     // MARK: - Navigation Items

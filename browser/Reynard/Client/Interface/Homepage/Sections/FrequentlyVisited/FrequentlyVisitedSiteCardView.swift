@@ -82,7 +82,7 @@ final class FrequentlyVisitedSiteCardView: UIControl {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         
-        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else {
+        guard previousTraitCollection?.appUsesDarkAppearance != traitCollection.appUsesDarkAppearance else {
             return
         }
         
@@ -168,10 +168,10 @@ final class FrequentlyVisitedSiteCardView: UIControl {
     // MARK: - Appearance
     
     private func updateAppearance() {
-        backgroundColor = traitCollection.userInterfaceStyle == .dark ? .appSystemGray5 : .appSystemBackground
+        backgroundColor = traitCollection.appUsesDarkAppearance ? .appSystemGray5 : .appSystemBackground
         previewView.backgroundColor = .appSystemGray6
         titleLabel.textColor = .appLabel
-        layer.shadowColor = traitCollection.userInterfaceStyle == .dark
+        layer.shadowColor = traitCollection.appUsesDarkAppearance
         ? UIColor.white.cgColor
         : UIColor.black.cgColor
     }

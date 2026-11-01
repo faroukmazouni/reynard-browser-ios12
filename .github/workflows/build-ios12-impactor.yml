@@ -6,55 +6,158 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ios12-impactor-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  build:
-    # macOS 14 is the hosted image that supports Xcode 15.4. Xcode 15.4 can
-    # produce binaries with an iOS 12 deployment target.
+  preflight:
+    name: Check Xcode 15 project and share extension
     runs-on: macos-14
-    timeout-minutes: 360
-
+    timeout-minutes: 20
     steps:
-      - name: Check out the project and submodules
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          submodules: recursive
-          fetch-depth: 1
-
-      - name: Select Xcode 15.4
+          submodules: false
+      - name: Select Xcode 15.4 and check the project
         run: |
           test -d /Applications/Xcode_15.4.app/Contents/Developer
           sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer
-          sudo xcodebuild -license accept
           xcodebuild -version
-          xcrun --sdk iphoneos --show-sdk-path
+          xcodebuild -list -project browser/Reynard.xcodeproj
+          xcodebuild build -project browser/Reynard.xcodeproj -target OpenIn \
+            -configuration Release -sdk iphoneos -arch arm64 \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 
-      - name: Install build tools
+  engine:
+    name: Build Gecko with the newer SDK
+    needs: preflight
+    runs-on: macos-15
+    timeout-minutes: 360
+    env:
+      MOZ_AUTOMATION: "1"
+      GECKO_BUILD_JOBS: "2"
+      CARGO_BUILD_JOBS: "2"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+      - name: Select Xcode 16.4 for Gecko's SDK requirement
         run: |
-          brew list ldid >/dev/null 2>&1 || brew install ldid
-          rustup target add aarch64-apple-ios
-          python3 --version
-          rustc --version
-          ldid -h >/dev/null
-
-      - name: Prepare Gecko sources
+          test -d /Applications/Xcode_16.4.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Rust
         run: |
+          rustup toolchain install stable --profile minimal --target aarch64-apple-ios
+          rustup default stable
+      - name: Make space on the temporary build machine
+        run: |
+          test "$GITHUB_ACTIONS" = true
+          # Retain Xcode 16.4. These named unused installations belong to the
+          # disposable CI machine; these commands never run on the user's Mac.
+          for unused_xcode in \
+            /Applications/Xcode_26.3.app /Applications/Xcode_26.2.app \
+            /Applications/Xcode_26.1.1.app /Applications/Xcode_26.0.1.app \
+            /Applications/Xcode_16.3.app /Applications/Xcode_16.2.app \
+            /Applications/Xcode_16.1.app /Applications/Xcode_16.app; do
+            if [ -d "$unused_xcode" ] && [ ! -L "$unused_xcode" ]; then
+              sudo rm -rf "$unused_xcode"
+            fi
+          done
+          df -h
+          available_kb="$(df -k . | awk 'END { print $4 }')"
+          if [ "$available_kb" -lt 31457280 ]; then
+            echo "::error::Firefox needs at least 30 GB free. Use a runner with more storage."
+            exit 1
+          fi
+      - name: Fetch and patch the pinned Firefox release
+        run: |
+          mkdir -p dist/ci-logs
+          set -o pipefail
           ./tools/development/update-gecko.sh
-          ./tools/development/apply-patches.sh
-
-      - name: Build native dependencies and Gecko
+          ./tools/development/apply-patches.sh < /dev/null 2>&1 | tee dist/ci-logs/patches.log
+      - name: Build Gecko targeting iOS 12.0
         run: |
-          ./tools/development/build-idevice.sh
-          ./tools/development/build-gecko.sh
-
-      - name: Build unsigned iOS 12 archive and IPA
+          set -o pipefail
+          ./tools/development/build-gecko.sh 2>&1 | tee dist/ci-logs/gecko.log
+      - name: Package only the engine distribution and default theme
         run: |
-          ./tools/release/build-ios12-impactor.sh
-          ./tools/release/create-ios12-impactor-ipa.sh
-
-      - name: Upload IPA
+          tar -chzf dist/gecko-ios12.tar.gz \
+            engine/firefox/obj-aarch64-apple-ios/dist/include \
+            engine/firefox/obj-aarch64-apple-ios/dist/bin \
+            engine/firefox/toolkit/mozapps/extensions/default-theme
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gecko-ios12-distribution
+          path: dist/gecko-ios12.tar.gz
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload engine diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
+        with:
+          name: iOS12-engine-logs
+          path: |
+            dist/ci-logs/
+            engine/firefox/obj-aarch64-apple-ios/config.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  app:
+    name: Build Swift app and validate the IPA
+    needs: engine
+    runs-on: macos-14
+    timeout-minutes: 60
+    env:
+      CARGO_BUILD_JOBS: "2"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Select Xcode 15.4 for Swift and final linking
+        run: |
+          test -d /Applications/Xcode_15.4.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_15.4.app/Contents/Developer
+          xcodebuild -version
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: gecko-ios12-distribution
+          path: dist
+      - name: Restore Gecko and build the device library
+        run: |
+          mkdir -p dist/ci-logs
+          tar -xzf dist/gecko-ios12.tar.gz
+          git submodule update --init --depth 1 --recursive support/idevice
+          rustup toolchain install stable --profile minimal --target aarch64-apple-ios
+          rustup default stable
+          set -o pipefail
+          ./tools/development/build-idevice.sh 2>&1 | tee dist/ci-logs/idevice.log
+      - name: Build unsigned archive and package IPA
+        run: |
+          set -o pipefail
+          ./tools/release/build-ios12-impactor.sh 2>&1 | tee dist/ci-logs/archive.log
+          ./tools/release/create-ios12-impactor-ipa.sh 2>&1 | tee dist/ci-logs/package.log
+      - uses: actions/upload-artifact@v4
         with:
           name: Reynard-iOS12-Impactor
           path: dist/ios12-impactor/Reynard-iOS12-Impactor.ipa
           if-no-files-found: error
           retention-days: 14
+      - name: Upload app diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS12-app-logs
+          path: dist/ci-logs/
+          if-no-files-found: ignore
+          retention-days: 7

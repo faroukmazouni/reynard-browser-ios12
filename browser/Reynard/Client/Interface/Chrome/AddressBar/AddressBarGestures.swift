@@ -183,7 +183,7 @@ final class AddressBarGestures: NSObject {
         let backgroundColor: UIColor
         if #available(iOS 13.0, *) {
             backgroundColor = UIColor { traitCollection in
-                traitCollection.userInterfaceStyle == .dark ? .appTertiarySystemBackground : .appSystemBackground
+                traitCollection.appUsesDarkAppearance ? .appTertiarySystemBackground : .appSystemBackground
             }
         } else {
             backgroundColor = .appSystemBackground

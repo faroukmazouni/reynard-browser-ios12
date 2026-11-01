@@ -25,6 +25,7 @@ xcodebuild archive \
   -archivePath "$DIST_DIR/Reynard.xcarchive" \
   -project "$PROJECT_PATH" \
   -sdk iphoneos \
+  -destination 'generic/platform=iOS' \
   -arch arm64 \
   -configuration Release \
   -xcconfig "$DIST_DIR/Reynard.xcconfig" \

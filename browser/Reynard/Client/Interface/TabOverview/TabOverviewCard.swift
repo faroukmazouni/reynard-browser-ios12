@@ -372,7 +372,7 @@ final class TabOverviewCard: UICollectionViewCell {
     }
     
     private func updateWebpagePreviewShadowColor() {
-        webpagePreviewShadowView.layer.shadowColor = webpagePreviewShadowView.traitCollection.userInterfaceStyle == .dark
+        webpagePreviewShadowView.layer.shadowColor = webpagePreviewShadowView.traitCollection.appUsesDarkAppearance
         ? UIColor.white.cgColor
         : UIColor.black.cgColor
     }

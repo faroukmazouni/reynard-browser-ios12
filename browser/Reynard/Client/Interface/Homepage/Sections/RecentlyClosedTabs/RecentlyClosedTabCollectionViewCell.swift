@@ -71,7 +71,7 @@ final class RecentlyClosedTabCollectionViewCell: UICollectionViewCell {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         
-        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else {
+        guard previousTraitCollection?.appUsesDarkAppearance != traitCollection.appUsesDarkAppearance else {
             return
         }
         
@@ -141,11 +141,11 @@ final class RecentlyClosedTabCollectionViewCell: UICollectionViewCell {
     // MARK: - Appearance
     
     private func updateAppearance() {
-        pillView.backgroundColor = traitCollection.userInterfaceStyle == .dark
+        pillView.backgroundColor = traitCollection.appUsesDarkAppearance
         ? .appSystemGray5
         : .appSystemBackground
         titleLabel.textColor = .appLabel
-        layer.shadowColor = traitCollection.userInterfaceStyle == .dark
+        layer.shadowColor = traitCollection.appUsesDarkAppearance
         ? UIColor.white.cgColor
         : UIColor.black.cgColor
     }

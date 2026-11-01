@@ -39,7 +39,7 @@ final class PrivateBrowsingSectionViewController: UIViewController {
         let backgroundColor: UIColor
         if #available(iOS 13.0, *) {
             backgroundColor = UIColor { traitCollection in
-                traitCollection.userInterfaceStyle == .dark ? .appSystemGray6 : UIColor.black.withAlphaComponent(0.7)
+                traitCollection.appUsesDarkAppearance ? .appSystemGray6 : UIColor.black.withAlphaComponent(0.7)
             }
         } else {
             backgroundColor = UIColor.black.withAlphaComponent(0.7)

@@ -33,6 +33,8 @@ for extension in "Reynard Helper.appex" "OpenIn.appex"; do
   fi
 done
 
+python3 "$SCRIPT_DIR/validate-ios12-app.py" "$APP_PATH" --os-version 12.1.1
+
 rm -rf "$WORK_DIR" "$IPA_PATH"
 mkdir -p "$WORK_DIR/Payload"
 ditto "$APP_PATH" "$WORK_DIR/Payload/$(basename "$APP_PATH")"

@@ -133,7 +133,7 @@ final class AddressBar: UIView {
         let backgroundColor: UIColor
         if #available(iOS 13.0, *) {
             backgroundColor = UIColor { traitCollection in
-                traitCollection.userInterfaceStyle == .dark ? .appTertiarySystemBackground : .appSystemBackground
+                traitCollection.appUsesDarkAppearance ? .appTertiarySystemBackground : .appSystemBackground
             }
         } else {
             backgroundColor = .appSystemBackground
@@ -473,7 +473,7 @@ final class AddressBar: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .clear
         clipsToBounds = false
-        addressBarBackground.layer.shadowColor = traitCollection.userInterfaceStyle == .dark
+        addressBarBackground.layer.shadowColor = traitCollection.appUsesDarkAppearance
         ? UIColor.white.withAlphaComponent(UX.addressBarBackgroundDarkModeShadowAlpha).cgColor
         : UIColor.black.cgColor
         addressBarBackground.layer.shadowOpacity = UX.addressBarBackgroundShadowOpacity

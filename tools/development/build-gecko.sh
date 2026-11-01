@@ -10,7 +10,7 @@ TARGET="aarch64-apple-ios"
 
 cd "$ROOT_DIR"
 
-if [ ! -d "$FIREFOX_DIR" ]; then
+if [ ! -x "$FIREFOX_DIR/mach" ]; then
 	echo "Missing firefox source at $FIREFOX_DIR"
 	echo "Add the submodule, then run tools/development/update-gecko.sh."
 	exit 1
@@ -28,7 +28,7 @@ WASI_SDK_URL="https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk
 if [ ! -d "$WASI_SDK_DIR" ]; then
 	echo "Downloading WASI SDK ($WASI_SDK_ARCH)..."
 	TMP_DIR="$(mktemp -d)"
-	curl -L "$WASI_SDK_URL" -o "$TMP_DIR/wasi-sdk.tar.gz"
+	curl --fail --location --retry 3 "$WASI_SDK_URL" -o "$TMP_DIR/wasi-sdk.tar.gz"
 	mkdir -p "$WASI_SDK_DIR"
 	tar -xzf "$TMP_DIR/wasi-sdk.tar.gz" -C "$WASI_SDK_DIR" --strip-components=1
 	rm -rf "$TMP_DIR"
@@ -38,10 +38,17 @@ fi
 	echo "ac_add_options --enable-application=mobile/ios"
 	echo "ac_add_options --target=$TARGET"
 	echo "ac_add_options --enable-ios-target=12.0"
+	# Release builds do not bootstrap by default. Gecko needs a newer LLVM
+	# toolchain than the Apple compiler shipped with Xcode 15.4.
+	echo "ac_add_options --enable-bootstrap"
 	echo "ac_add_options --enable-webrtc"
 	echo "ac_add_options --enable-optimize"
 	echo "ac_add_options --disable-debug"
+	echo "ac_add_options --disable-debug-symbols"
 	echo "ac_add_options --disable-tests"
+	if [ -n "${GECKO_BUILD_JOBS:-}" ]; then
+		echo "mk_add_options MOZ_PARALLEL_BUILD=-j${GECKO_BUILD_JOBS}"
+	fi
 	echo "export WASM_CC=$WASI_SDK_DIR/bin/clang"
 	echo "export WASM_CXX=$WASI_SDK_DIR/bin/clang++"
 	echo "ac_add_options --with-wasi-sysroot=$WASI_SDK_DIR/share/wasi-sysroot"

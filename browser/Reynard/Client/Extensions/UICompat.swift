@@ -9,6 +9,14 @@
 
 import UIKit
 
+extension UITraitCollection {
+    /// iOS 12 has a single light appearance and no `userInterfaceStyle` getter.
+    var appUsesDarkAppearance: Bool {
+        if #available(iOS 13.0, *) { return userInterfaceStyle == .dark }
+        return false
+    }
+}
+
 extension UIColor {
     static var appLabel: UIColor {
         if #available(iOS 13.0, *) { return .label }

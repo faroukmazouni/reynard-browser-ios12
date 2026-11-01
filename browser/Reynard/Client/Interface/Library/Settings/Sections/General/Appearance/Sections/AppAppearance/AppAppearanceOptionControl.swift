@@ -46,7 +46,7 @@ final class AppAppearanceOptionControl: UIControl {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         
-        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else {
+        guard previousTraitCollection?.appUsesDarkAppearance != traitCollection.appUsesDarkAppearance else {
             return
         }
         
@@ -56,7 +56,7 @@ final class AppAppearanceOptionControl: UIControl {
     func displaySelection(selected: Bool) {
         isSelected = selected
         if selected {
-            previewView.backgroundColor = traitCollection.userInterfaceStyle == .dark ? .appSystemGray5 : .appSystemBackground
+            previewView.backgroundColor = traitCollection.appUsesDarkAppearance ? .appSystemGray5 : .appSystemBackground
         } else {
             previewView.backgroundColor = .clear
         }

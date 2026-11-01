@@ -152,7 +152,7 @@ final class PageZoomActionBar: UIView {
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else {
+        guard previousTraitCollection?.appUsesDarkAppearance != traitCollection.appUsesDarkAppearance else {
             return
         }
         
@@ -284,7 +284,7 @@ final class PageZoomActionBar: UIView {
     }
     
     private func updateShadowColor() {
-        let color: UIColor = traitCollection.userInterfaceStyle == .dark ? .white : .black
+        let color: UIColor = traitCollection.appUsesDarkAppearance ? .white : .black
         controlsShadowView.layer.shadowColor = color.cgColor
         closeShadowView.layer.shadowColor = color.cgColor
     }

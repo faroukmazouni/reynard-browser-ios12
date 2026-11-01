@@ -116,7 +116,7 @@ final class ChromeOverlayContentView: UIView {
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else {
+        guard previousTraitCollection?.appUsesDarkAppearance != traitCollection.appUsesDarkAppearance else {
             return
         }
         
@@ -177,7 +177,7 @@ final class ChromeOverlayContentView: UIView {
     }
     
     private func updateShadowColor() {
-        layer.shadowColor = (traitCollection.userInterfaceStyle == .dark ? UIColor.white : .black).cgColor
+        layer.shadowColor = (traitCollection.appUsesDarkAppearance ? UIColor.white : .black).cgColor
     }
     
     private var overlayCornerRadius: CGFloat {

@@ -52,7 +52,7 @@ final class AddressBarDismissButton: UIButton {
         let backgroundColor: UIColor
         if #available(iOS 13.0, *) {
             backgroundColor = UIColor { traitCollection in
-                traitCollection.userInterfaceStyle == .dark ? .appTertiarySystemBackground : .appSystemBackground
+                traitCollection.appUsesDarkAppearance ? .appTertiarySystemBackground : .appSystemBackground
             }
         } else {
             backgroundColor = .appSystemBackground
@@ -60,7 +60,7 @@ final class AddressBarDismissButton: UIButton {
         self.backgroundColor = backgroundColor
         tintColor = .appLabel
         layer.applyContinuousCornerCurve()
-        layer.shadowColor = traitCollection.userInterfaceStyle == .dark
+        layer.shadowColor = traitCollection.appUsesDarkAppearance
         ? UIColor.white.withAlphaComponent(UX.dismissButtonDarkModeShadowAlpha).cgColor
         : UIColor.black.cgColor
         layer.shadowRadius = UX.dismissButtonShadowRadius

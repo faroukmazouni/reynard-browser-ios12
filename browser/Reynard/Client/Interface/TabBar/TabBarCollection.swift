@@ -316,7 +316,7 @@ final class TabBarCollection: UICollectionView, UIGestureRecognizerDelegate {
         dragSnapshot.frame = tabBarCell.convert(tabBarCell.bounds, to: dragContainer)
         dragSnapshot.isUserInteractionEnabled = false
         dragSnapshot.layer.masksToBounds = false
-        dragSnapshot.layer.shadowColor = dragSnapshot.traitCollection.userInterfaceStyle == .dark
+        dragSnapshot.layer.shadowColor = dragSnapshot.traitCollection.appUsesDarkAppearance
         ? UIColor.white.cgColor
         : UIColor.black.cgColor
         dragSnapshot.layer.shadowOpacity = UX.dragSnapshotShadowOpacity
