@@ -58,7 +58,9 @@ fi
 	echo "ac_add_options --disable-debug-symbols"
 	echo "ac_add_options --disable-tests"
 	if [ -n "${GECKO_BUILD_JOBS:-}" ]; then
-		echo "mk_add_options MOZ_PARALLEL_BUILD=-j${GECKO_BUILD_JOBS}"
+		# MOZ_PARALLEL_BUILD takes a plain worker count.  Unlike `make -j`,
+		# its value is parsed directly as an integer by mach.
+		echo "mk_add_options MOZ_PARALLEL_BUILD=${GECKO_BUILD_JOBS}"
 	fi
 	echo "export WASM_CC=$WASI_SDK_DIR/bin/clang"
 	echo "export WASM_CXX=$WASI_SDK_DIR/bin/clang++"
